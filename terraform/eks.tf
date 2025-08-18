@@ -10,9 +10,9 @@ provider "aws" {
 ##########################
 
 locals {
-  vpc_id            = "vpc-0c1efa92d2dcaab5d"
-  public_subnet_ids = ["subnet-03c9ce4682ce31c58", "subnet-088dd7313097bb254"]
-  private_subnet_ids = ["subnet-0b875e4592b547182", "subnet-0ee39c44989dfd65c"]
+  vpc_id            = ""
+  public_subnet_ids = ["", ""]
+  private_subnet_ids = ["", ""]
 }
 
 # 1. Elastic IP for NAT
@@ -23,7 +23,7 @@ resource "aws_eip" "nat_eip" {
 # 2. NAT Gateway (퍼블릭 서브넷에 생성해야 함)
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat_eip.id
-  subnet_id     = "subnet-03c9ce4682ce31c58"  # 퍼블릭 서브넷 중 하나
+  subnet_id     = ""  # 퍼블릭 서브넷 중 하나
   tags = {
     Name = "my-nat-gw"
   }
@@ -31,7 +31,7 @@ resource "aws_nat_gateway" "nat" {
 
 # 3. 프라이빗 라우팅 테이블 NAT Gateway 라우팅
 resource "aws_route" "private" {
-  route_table_id         = "rtb-0266cb8f8101876a9"
+  route_table_id         = ""
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = aws_nat_gateway.nat.id
 }
