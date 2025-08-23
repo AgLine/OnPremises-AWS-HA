@@ -4,10 +4,11 @@
 - **기간**: 2025.08 ~ 진행중
 - **Backend**: `Spring Boot`
 - **Frontend**: `React`
-- **DB**: `MariaDB`, `GALERA`
+- **DB**: `MariaDB`, `AWS DMS`
 - **lac**: `Terraform`
 - **Cloud**: `AWS EKS`
 - **OnPremis**: `ESXi`
+- **CI/CD**: `Jenkins`, `ArgoCD`
 - **Monitoring**: `K9s`
 ---
 ## 🎯 프로젝트 목적
@@ -24,6 +25,7 @@
 |AWS EKS|Kubernetes 클러스터, 노드그룹 테라폼으로 생성|
 |HPA|Pod AutoScaling|
 |Karpenter|Node AutoScaling|
+|CI/CD|EKS 환경에 Jenkins와 ArgoCD를 Terraform으로 설치|
 |환경변수 관리|AWS CLI `aws configure` 자격 증명을 환경변수로 분리하여 보안 강화|
 ### 👥 팀 구성 및 역할 분담
 - **본인** : AWS EKS
@@ -38,8 +40,8 @@
 - 온프레미스 장애 시 AWS EKS 환경으로 자동 전환
 - 지속적인 트래픽 분산 및 클러스터 확장 가능
 
-### 2. GALERA
-- 온프레미스와 AWS DB 동기화
+### 2. AWS DMS
+- 온프레미스 MariaDB → AWS RDS (MariaDB) 간 데이터 실시간 동기화
 
 ### 3. HPA
 - Pod CPU/Memory 사용량 기반 자동 확장
