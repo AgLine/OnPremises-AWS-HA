@@ -23,12 +23,12 @@
 |------|----------|
 |AWS 환경셋팅|VPC, EIP, NAT Gateway 를 테라폼으로 구성|
 |AWS EKS|Kubernetes 클러스터, 노드그룹 테라폼으로 생성|
-|HPA|Pod AutoScaling|
-|Karpenter|Node AutoScaling|
+|EKS AutoScaling|HPA-Pod AutoScaling, Karpenter-Node AutoScaling|
 |AWS DMS|소스,타겟 엔드포인트생성후 태스크를 통해 동기화진행|
+|AWS Route53| 온프레미스와 AWS로의 트래픽 분산|
 |환경변수 관리|AWS CLI `aws configure` 자격 증명을 환경변수로 분리하여 보안 강화|
 ### 👥 팀 구성 및 역할 분담
-- **본인** : AWS EKS
+- **본인** : AWS EKS, AWS DMS, AWS Route53
 - **팀원** : ESXi
 - **팀원** : Istio
 - **팀원** : 데모앱, CI/CD
@@ -45,15 +45,15 @@
 - 타겟엔드포인트 -> On-Premise DB
 - 온프레미스 MariaDB → AWS RDS (MariaDB) 간 데이터 동기화
 
-### 3. HPA
+### 3. EKS AutoScaling
+#### HPA
 - Pod CPU/Memory 사용량 기반 자동 확장
 - 트래픽 급증 상황에서 안정적으로 서비스 처리 가능
-
-### 4. Karpenter
+#### Karpenter
 - 클러스터 리소스 부족 시 노드를 자동으로 생성 및 제거
 - 필요 없는 리소스는 자동 축소하여 클라우드 비용 최적화
 
-### 5. AWS Configure 환경변수 관리
+### 4. AWS Configure 환경변수 관리
 - `aws configure` 자격 증명을 환경변수로 추출
 - 코드와 자격 증명 정보를 분리하여 보안성 강화 및 재사용성 확보
 
