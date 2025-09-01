@@ -508,3 +508,71 @@ resource "null_resource" "karpenter_nodepool" {
     ]
   }
 }
+
+############################################
+# HPA Pod limits5 테스트용
+############################################
+resource "null_resource" "hpa_pod" {
+  depends_on = [
+    null_resource.karpenter_nodepool,
+    null_resource.install_metrics_server
+  ]
+
+  connection {
+    type        = "ssh"
+    host        = aws_instance.bastion.public_ip
+    user        = "ec2-user"
+    private_key = file("C:/.ssh/bastion-key.pem")
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      # 샘플 앱 배포
+      <<-EOT
+      cat <<EOF | kubectl apply -f -
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: php-apache
+      spec:
+        selector:
+          matchLabels:
+            run: php-apache
+        replicas: 1
+        template:
+          metadata:
+            labels:
+              run: php-apache
+          spec:
+            containers:
+            - name: php-apache
+              image: registry.k8s.io/hpa-example
+              ports:
+              - containerPort: 80
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+                requests:
+                  cpu: 200m
+                  memory: 128Mi
+      ---
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: php-apache
+        labels:
+          run: php-apache
+      spec:
+        ports:
+        - port: 80
+        selector:
+          run: php-apache
+      EOF
+      EOT
+      ,
+      # HPA 설정
+      "kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=5"
+    ]
+  }
+}
