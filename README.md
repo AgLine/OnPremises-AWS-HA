@@ -6,7 +6,7 @@
 - **Frontend**: `React`
 - **DB**: `MariaDB`, `AWS DMS`
 - **lac**: `Terraform`
-- **Cloud**: `AWS EKS`
+- **Cloud**: `AWS EKS`, `AWS Route53`
 - **OnPremis**: `ESXi`
 - **CI/CD**: `Jenkins`, `ArgoCD`
 - **Monitoring**: `K9s`
