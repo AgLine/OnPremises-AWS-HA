@@ -109,3 +109,7 @@
 
 ### CloudWatch 장애 감지
 ![cloudwatch](https://github.com/user-attachments/assets/7204b1e0-44f3-44b6-b243-75b4949fd9be)
+
+### DMS
+<img width="1493" height="612" alt="image" src="https://github.com/user-attachments/assets/f5a3d94d-2904-42b6-9574-d2f5d473d015" />
+<img width="837" height="636" alt="image" src="https://github.com/user-attachments/assets/e78097d3-0500-4b8d-8d73-56f638d0cedf" />
