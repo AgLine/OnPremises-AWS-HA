@@ -11,7 +11,7 @@ resource "null_resource" "deploy_application" {
     type        = "ssh"
     host        = aws_instance.bastion.public_ip
     user        = "ec2-user"
-    private_key = file("C:/.ssh/bastion-key.pem")
+    private_key = file("C:.ssh/bastion-key.pem")
   }
 
   provisioner "remote-exec" {
@@ -48,6 +48,8 @@ resource "null_resource" "deploy_application" {
       metadata:
         name: backend-service
         namespace: default
+        annotations:
+          alb.ingress.kubernetes.io/healthcheck-path: /api/products
       spec:
         selector:
           app: my-backend
@@ -70,6 +72,9 @@ resource "null_resource" "deploy_application" {
       kind: Service
       metadata:
         name: frontend-service
+        namespace: default
+        annotations:
+          alb.ingress.kubernetes.io/healthcheck-path: /
       spec:
         selector:
           app: my-frontend
@@ -105,7 +110,7 @@ resource "null_resource" "deploy_application" {
           spec:
             containers:
             - name: my-backend-container
-              image: 
+              image: 123456789.dkr.ecr.ap-northeast-2.amazonaws.com/my-backend:1.0
               env:
               - name: ALLOWED_ORIGIN
                 value: "*"
@@ -135,6 +140,7 @@ resource "null_resource" "deploy_application" {
       kind: Deployment
       metadata:
         name: frontend-deployment
+        namespace: default
       spec:
         replicas: 2
         selector:
@@ -147,7 +153,7 @@ resource "null_resource" "deploy_application" {
           spec:
             containers:
             - name: my-frontend-container
-              image: 
+              image: 123456789.dkr.ecr.ap-northeast-2.amazonaws.com/my-frontend:19
               ports:
               - containerPort: 80
       EOF
@@ -169,19 +175,36 @@ resource "null_resource" "deploy_application" {
         name: app-ingress
         namespace: default
         annotations:
+          # --- 기존 어노테이션 유지 ---
           alb.ingress.kubernetes.io/scheme: internet-facing
           alb.ingress.kubernetes.io/target-type: ip
           alb.ingress.kubernetes.io/group.name: my-app
-          alb.ingress.kubernetes.io/healthcheck-path: /
           alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
           alb.ingress.kubernetes.io/healthy-threshold-count: '2'
           alb.ingress.kubernetes.io/unhealthy-threshold-count: '5'
+          alb.ingress.kubernetes.io/actions.forward-weighted: >
+            {
+              "type": "forward",
+              "forwardConfig": {
+                "targetGroups": [
+                  {
+                    "serviceName": "frontend-service",
+                    "servicePort": "80",
+                    "weight": 60
+                  },
+                  {
+                    "targetGroupARN": "arn:aws:elasticloadbalancing:ap-northeast-2:123456789:targetgroup/onprem/",
+                    "weight": 40
+                  }
+                ]
+              }
+            }
       spec:
         ingressClassName: alb
         rules:
         - http:
             paths:
-            - path: /api
+            - path: /api/products
               pathType: Prefix
               backend:
                 service:
@@ -192,9 +215,9 @@ resource "null_resource" "deploy_application" {
               pathType: Prefix
               backend:
                 service:
-                  name: frontend-service
+                  name: forward-weighted  
                   port:
-                    number: 80
+                    name: use-annotation 
       EOF
       
       echo "Application Ingress deployed successfully"
@@ -225,7 +248,7 @@ resource "null_resource" "deploy_application" {
           kind: Deployment
           name: backend-deployment
         minReplicas: 2
-        maxReplicas: 3
+        maxReplicas: 5
         metrics:
         - type: Resource
           resource:
@@ -255,6 +278,54 @@ resource "null_resource" "deploy_application" {
       EOF
       
       echo "Backend HPA deployed successfully"
+      EOT
+      ,
+      # Frontend HPA 배포
+      <<-EOT
+      echo "Deploying Frontend HPA..."
+      
+      cat <<EOF | kubectl apply -f -
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: frontend-hpa
+        namespace: default
+      spec:
+        scaleTargetRef:
+          apiVersion: apps/v1
+          kind: Deployment
+          name: frontend-deployment
+        minReplicas: 2
+        maxReplicas: 5
+        metrics:
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              type: Utilization
+              averageUtilization: 70
+        - type: Resource
+          resource:
+            name: memory
+            target:
+              type: Utilization
+              averageUtilization: 80
+        behavior:
+          scaleUp:
+            stabilizationWindowSeconds: 60
+            policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 15
+          scaleDown:
+            stabilizationWindowSeconds: 300
+            policies:
+            - type: Percent
+              value: 50
+              periodSeconds: 60
+      EOF
+
+      echo "Frontend HPA deployed successfully"
       EOT
     ]
   }
