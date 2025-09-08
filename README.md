@@ -23,6 +23,7 @@
 |AWS 환경셋팅|`Terraform`을 사용하여 VPC, Subnet, NAT Gateway 등 전체 네트워크 환경 구성|
 |AWS EKS|`Terraform`을 활용하여 Kubernetes 클러스터 및 노드 그룹 생성 자동화|
 |EKS AutoScaling|HPA를 통한 Pod 단위 스케일링, Karpenter를 이용한 노드 단위 스케일링 구성|
+|Site to Site VPN|고객 게이트웨이(Customer Gateway)와 AWS의 가상 프라이빗 게이트웨이연결|
 |AWS DMS|소스(RDS), 타겟(On-Premise) 엔드포인트를 구성하고 복제 태스크를 생성하여 데이터 동기화|
 |보안|`aws configure` 자격 증명을 환경변수로 분리하여 보안 강화 및 관리 효율 증대|
 |AWS Route53| 호스팅 영역에 A 레코드를 생성하여 ALB와 도메인을 연결하고 트래픽 라우팅 설정|
@@ -41,32 +42,36 @@
 ### 1. 서비스 이중화 및 자동 Failover
 - 온프레미스 장애 발생 시 CloudWatch 경보와 Lambda를 통해 트래픽을 AWS EKS 환경으로 자동 전환합니다.
 - 평상시에는 Route 53과 ALB를 통해 온프레미스와 AWS 환경으로 트래픽을 지속적으로 분산합니다.
-
-### 2. AWS DMS
-- 소스 엔드포인트를 RDS, 타겟 엔드포인트를 On-Premise로 설정합니다
-- DMS 복제 태스크를 통해 온프레미스 MariaDB와 AWS RDS(MariaDB) 간 데이터를 실시간으로 동기화하여 데이터 정합성을 유지합니다.
-
-### 3. EKS AutoScaling
+  
+### 2. EKS AutoScaling
 #### HPA
 - Pod의 CPU/Memory 사용량에 따라 Pod 수를 자동으로 확장/축소하여 트래픽 변화에 유연하게 대응합니다.
 #### Karpenter
 - 클러스터의 리소스 부족을 감지하여 필요한 만큼 노드(EC2)를 자동으로 프로비저닝하고, 유휴 시에는 제거하여 비용을 최적화합니다.
 
-### 4. AWS 자격 증명 보안 강화
+### 3. Site-to-Site VPN을 통한 하이브리드 네트워크 구축
+- 온프레미스 방화벽의 Public IP를 기반으로 고객 게이트웨이(Customer Gateway)를 설정하고, AWS의 가상 프라이빗 게이트웨이(VGW)와 연결했습니다.
+- 이를 통해 가용성을 위해 이중화된 2개의 IPsec 터널을 생성하여 온프레미스와 AWS VPC 간 안전한 비공개 통신 채널을 확보했습니다.
+
+### 4. AWS DMS
+- 소스 엔드포인트를 RDS, 타겟 엔드포인트를 On-Premise로 설정합니다
+- DMS 복제 태스크를 통해 온프레미스 MariaDB와 AWS RDS(MariaDB) 간 데이터를 실시간으로 동기화하여 데이터 정합성을 유지합니다.
+
+### 5. AWS 자격 증명 보안 강화
 - `aws configure` 로 설정된 Access Key를 코드에 하드코딩하지 않고 환경변수로 분리했습니다.
 - 이를 통해 코드와 자격 증명을 분리하여 보안성을 강화하고 재사용성을 확보했습니다.
 
-### 5. AWS Route 53 기반 DNS 라우팅
+### 6. AWS Route 53 기반 DNS 라우팅
 - 도메인 호스팅 영역을 생성하고, A 레코드(별칭)를 통해 사용자의 요청이 AWS ALB로 라우팅되도록 구성했습니다.
 
-### 6. ALB를 이용한 트래픽 분산
+### 7. ALB를 이용한 트래픽 분산
 - 하나의 리스너 규칙 내에 온프레미스와 AWS 대상 그룹을 모두 등록하고, 가중치(Weight) 를 On-Premise 40: AWS 60으로 설정하여 트래픽을 분산 처리합니다.
 
-### 7. CloudWatch를 통한 장애 감지
+### 8. CloudWatch를 통한 장애 감지
 -  ALB의 RequestCount가 특정 임계치 이상으로 증가하는 것을 감지하는 경보를 생성합니다.
 - 경보 상태(ALARM) 가 되면 `increase-aws-traffic` Lambda 함수를 실행하고, 정상 상태(OK) 로 복귀하면 `reset-default-traffic` Lambda 함수를 실행하도록 설정했습니다.
 
-### 8. AWS Lambda
+### 9. AWS Lambda
 - `increase-aws-traffic` 가중치(Weight)를 On-Premise 0: AWS 100 으로 변경하여 AWS가 모든트래픽을 처리합니다.
 - `reset-default-traffic` 가중치(Weight)를 On-Premise 40: AWS 60 으로 변경하여 On-Premise와 AWS가 트래픽을 분산처리합니다.
 ---
@@ -89,5 +94,18 @@
 - 초기에는 AWS와 On-premise에 대한 규칙을 별개로 생성했던 것이 원인이었습니다. ALB의 가중치 라우팅은 하나의 규칙 내에 여러 대상 그룹을 등록해야 한다는 것을 깨닫고, 규칙을 하나로 통합하여 의도한 대로 트래픽이 분산되도록 수정했습니다.
 
 ---
-## 📷 시스템 구조
-<img width="1685" height="1032" alt="image" src="https://github.com/user-attachments/assets/9223db6e-a986-4a9f-adc8-f2af74a69a10" />
+## 📷 아키텍쳐
+<img width="1147" height="783" alt="아키텍쳐" src="https://github.com/user-attachments/assets/7a8a1a37-9414-4254-a174-136eed3808b6" />
+
+## 실행결과
+### IaC (Terraform)
+[Terraform 실행 동영상 보기 🎥](https://drive.google.com/file/d/16Qvjg7k0H-P2Di0dIuN4_XKt5TsJJC4I/view?usp=sharing)
+
+### EKS AutoScaling
+[EKS AutoScaling 동영상 보기 🎥](https://drive.google.com/file/d/1iERB0g_klDrKDngrZ4Lp_vjazPHZ20Es/view?usp=sharing)
+
+### 트래픽분산
+![트래픽분산](https://github.com/user-attachments/assets/23f558ea-059d-496e-a2eb-3623e8e62b75)
+
+### CloudWatch 장애 감지
+![cloudwatch](https://github.com/user-attachments/assets/7204b1e0-44f3-44b6-b243-75b4949fd9be)
