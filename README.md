@@ -100,7 +100,7 @@
 
 ---
 ## 📷 아키텍쳐
-<img width="1147" height="783" alt="아키텍쳐" src="https://github.com/user-attachments/assets/7a8a1a37-9414-4254-a174-136eed3808b6" />
+<img width="1184" height="837" alt="image" src="https://github.com/user-attachments/assets/7dc735b2-827d-4b72-b309-5c11cd06bae8" />
 
 ## 실행결과
 ### IaC (Terraform)
@@ -108,6 +108,8 @@
 
 ### EKS AutoScaling
 [EKS AutoScaling 동영상 보기 🎥](https://drive.google.com/file/d/1iERB0g_klDrKDngrZ4Lp_vjazPHZ20Es/view?usp=sharing)
+<img width="828" height="106" alt="image" src="https://github.com/user-attachments/assets/588e467a-3d84-4728-9b66-0f7ba2eba15d" />
+<img width="826" height="42" alt="image" src="https://github.com/user-attachments/assets/35f56705-61e7-448d-a00b-e2e8f290fe53" />
 
 ### 트래픽분산
 ![트래픽분산](https://github.com/user-attachments/assets/23f558ea-059d-496e-a2eb-3623e8e62b75)
