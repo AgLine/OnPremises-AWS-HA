@@ -10,7 +10,7 @@
 - **OnPremis**: `ESXi`
 - **CI/CD**: `Jenkins`, `ArgoCD`
 - **Monitoring**: `K9s`
-- 협업 및 커뮤니케이션: `Jira`, `Notion`
+- **협업 및 커뮤니케이션**: `Jira`, `Notion`
 ---
 ## 🎯 프로젝트 목적
 온프레미스 서버와 AWS 클라우드 환경을 연동하여 서비스의 **가용성 확보 및 안정적 이중화(Redundancy)** 를 목표로 합니다.
