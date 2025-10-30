@@ -6,6 +6,7 @@
 - **DB**: `MariaDB`, `AWS DMS`
 - **lac**: `Terraform`
 - **Cloud (AWS)**: `EKS`, `Route53`, `ALB`, `CloudWatch`, `Lambda`, `VPN`
+- **Autoscaling**: `Karpneter`
 - **OnPremis**: `ESXi`
 - **CI/CD**: `Jenkins`, `ArgoCD`
 - **Monitoring**: `K9s`
